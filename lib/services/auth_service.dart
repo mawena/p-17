@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:p17/models/user.dart';
+import 'package:p17/services/local_user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocalUserService _userService = LocalUserService();
 
   // Stream de l'utilisateur authentifié
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -26,10 +26,10 @@ class AuthService {
       final user = userCredential.user;
       if (user == null) throw Exception('Erreur lors de l\'inscription');
 
-      // Mettre à jour le profil
+      // Mettre à jour le profil Firebase Auth
       await user.updateDisplayName(displayName);
 
-      // Créer le document utilisateur dans Firestore
+      // Créer le profil utilisateur localement
       final appUser = AppUser(
         uid: user.uid,
         email: email,
@@ -40,10 +40,7 @@ class AuthService {
         favoriteSpecies: [],
       );
 
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(appUser.toFirestore());
+      await _userService.createUser(appUser);
 
       return appUser;
     } on FirebaseAuthException catch (e) {
@@ -62,12 +59,26 @@ class AuthService {
         password: password,
       );
 
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
+      final uid = userCredential.user!.uid;
+      final appUser = await _userService.getUser(uid);
 
-      return AppUser.fromFirestore(userDoc);
+      if (appUser == null) {
+        // Au cas où le profil local n'existe pas, le créer
+        final user = userCredential.user!;
+        final newAppUser = AppUser(
+          uid: uid,
+          email: user.email ?? email,
+          displayName: user.displayName ?? 'Utilisateur',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          observationCount: 0,
+          favoriteSpecies: [],
+        );
+        await _userService.createUser(newAppUser);
+        return newAppUser;
+      }
+
+      return appUser;
     } on FirebaseAuthException catch (e) {
       throw Exception(_getErrorMessage(e.code));
     }
@@ -93,11 +104,8 @@ class AuthService {
     if (user == null) return null;
 
     try {
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      if (userDoc.exists) {
-        return AppUser.fromFirestore(userDoc);
-      }
-      return null;
+      final appUser = await _userService.getUser(user.uid);
+      return appUser;
     } catch (e) {
       return null;
     }

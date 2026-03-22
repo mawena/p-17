@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:p17/models/observation.dart';
 import 'package:p17/services/firestore_service.dart';
-import 'package:p17/services/database_service.dart';
 
 class ObservationProvider extends ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
-  final DatabaseService _databaseService = DatabaseService();
 
   List<Observation> _observations = [];
   bool _isLoading = false;
   String? _errorMessage;
+  StreamSubscription<List<Observation>>? _observationSubscription;
+  String? _currentUserId;
 
   List<Observation> get observations => _observations;
   bool get isLoading => _isLoading;
@@ -18,27 +19,34 @@ class ObservationProvider extends ChangeNotifier {
   // Charger les observations de l'utilisateur
   Future<void> loadUserObservations(String userId) async {
     try {
-      _isLoading = true;
+      // Ne pas appeler notifyListeners ici pour éviter setState() pendant le build
       _errorMessage = null;
+      _currentUserId = userId;
+
+      // Annuler la souscription précédente si elle existe
+      await _observationSubscription?.cancel();
+      _observationSubscription = null;
+
+      _isLoading = true;
+      // Notifier après la cancellation du stream précédent
       notifyListeners();
 
-      // Charger d'abord les donnéess locales
-      _observations = await _databaseService.getObservations(userId);
-      notifyListeners();
-
-      // Ensuite, charger depuis Firestore et mettre à jour
-      _firestoreService.getUserObservations(userId).listen((observations) {
-        _observations = observations;
-        notifyListeners();
-
-        // Sauvegarder localement
-        for (var obs in observations) {
-          _databaseService.insertObservation(obs);
-        }
-      });
-
-      _isLoading = false;
-      notifyListeners();
+      // S'abonner au stream pour les mises à jour en temps réel
+      _observationSubscription = _firestoreService
+          .getUserObservations(userId)
+          .listen(
+            (observations) {
+              _observations = observations;
+              _isLoading = false;
+              _errorMessage = null;
+              notifyListeners();
+            },
+            onError: (error) {
+              _errorMessage = error.toString();
+              _isLoading = false;
+              notifyListeners();
+            },
+          );
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
@@ -49,27 +57,20 @@ class ObservationProvider extends ChangeNotifier {
   // Ajouter une nouvelle observation
   Future<bool> addObservation(Observation observation) async {
     try {
-      _isLoading = true;
+      // Sauvegarder localement
+      final docId = await _firestoreService.addObservation(observation);
+
+      // Mettre à jour l'ID du document
+      final updatedObs = observation.copyWith(id: docId);
+
+      // Ajouter à la liste locale
+      _observations.add(updatedObs);
       _errorMessage = null;
       notifyListeners();
 
-      // Sauvegarder localement
-      await _databaseService.insertObservation(observation);
-
-      // Télécharger sur Firestore
-      final docId = await _firestoreService.addObservation(observation);
-
-      // Mettre à jour l'ID du document Firestore
-      final updatedObs = observation.copyWith(id: docId);
-      await _databaseService.updateObservation(updatedObs);
-      _observations.add(updatedObs);
-
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      _isLoading = false;
       notifyListeners();
       return false;
     }
@@ -90,8 +91,6 @@ class ObservationProvider extends ChangeNotifier {
         'isPublic': observation.isPublic,
         'updatedAt': observation.updatedAt,
       });
-
-      await _databaseService.updateObservation(observation);
 
       final index = _observations.indexWhere((obs) => obs.id == observation.id);
       if (index >= 0) {
@@ -116,12 +115,7 @@ class ObservationProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      // Supprimer de Firestore
       await _firestoreService.deleteObservation(observationId);
-
-      // Supprimer localement
-      await _databaseService.deleteObservation(observationId);
-
       _observations.removeWhere((obs) => obs.id == observationId);
 
       _isLoading = false;
@@ -164,5 +158,12 @@ class ObservationProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _observationSubscription?.cancel();
+    _observationSubscription = null;
+    super.dispose();
   }
 }

@@ -1,23 +1,13 @@
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:p17/services/local_file_storage_service.dart';
 import 'dart:io';
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final ImagePicker _imagePicker = ImagePicker();
+  final LocalFileStorageService _fileService = LocalFileStorageService();
 
   // Prendre une photo avec la caméra
   Future<File?> takePhoto() async {
     try {
-      final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        return File(pickedFile.path);
-      }
-      return null;
+      return await _fileService.takePhoto();
     } catch (e) {
       rethrow;
     }
@@ -26,53 +16,47 @@ class StorageService {
   // Choisir une photo de la galerie
   Future<File?> pickPhotoFromGallery() async {
     try {
-      final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        return File(pickedFile.path);
-      }
-      return null;
+      return await _fileService.pickPhotoFromGallery();
     } catch (e) {
       rethrow;
     }
   }
 
-  // Télécharger une photo vers Firebase Storage
+  // Télécharger une photo vers stockage local
   Future<String> uploadObservationPhoto({
     required File photoFile,
     required String userId,
     required String observationId,
   }) async {
     try {
-      final fileName =
-          'observations/$userId/$observationId/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final ref = _storage.ref().child(fileName);
-
-      await ref.putFile(photoFile);
-      final downloadUrl = await ref.getDownloadURL();
-
-      return downloadUrl;
+      final filePath = await _fileService.saveObservationPhoto(
+        photoFile: photoFile,
+        userId: userId,
+        observationId: observationId,
+      );
+      print('Photo sauvegardée localement: $filePath');
+      return filePath;
     } catch (e) {
+      print('Erreur upload photo: $e');
       rethrow;
     }
   }
 
   // Obtenir le chemin de stockage pour une observation
-  String getObservationPhotoPath({
+  Future<String> getObservationPhotoPath({
     required String userId,
     required String observationId,
-  }) {
-    return 'observations/$userId/$observationId/';
+  }) async {
+    return await _fileService.getObservationPhotoDirectory(
+      userId: userId,
+      observationId: observationId,
+    );
   }
 
   // Supprimer une photo
-  Future<void> deletePhoto(String photoUrl) async {
+  Future<void> deletePhoto(String filePath) async {
     try {
-      final ref = _storage.refFromURL(photoUrl);
-      await ref.delete();
+      await _fileService.deletePhoto(filePath);
     } catch (e) {
       rethrow;
     }
@@ -84,9 +68,12 @@ class StorageService {
     required String userId,
   }) async {
     try {
-      final ref = _storage.ref().child('users/$userId/avatar.jpg');
-      await ref.putFile(avatarFile);
-      return await ref.getDownloadURL();
+      final filePath = await _fileService.saveUserAvatar(
+        photoFile: avatarFile,
+        userId: userId,
+      );
+      print('Avatar sauvegardé localement: $filePath');
+      return filePath;
     } catch (e) {
       rethrow;
     }

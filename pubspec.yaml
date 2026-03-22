@@ -49,9 +49,10 @@ dependencies:
   geolocator: ^10.1.0
   google_maps_flutter: ^2.5.3
   
-  # SQLite
+  # SQLite & Storage
   sqflite: ^2.3.3
   path: ^1.8.0
+  path_provider: ^2.1.1
   
   # UI & Navigation
   go_router: ^13.2.5

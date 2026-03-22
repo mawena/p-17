@@ -172,9 +172,7 @@ class _HomePageWidget extends StatelessWidget {
                             _QuickActionButton(
                               icon: Icons.list,
                               label: 'Voir toutes les observations',
-                              onTap: () {
-                                // Navigate to observations
-                              },
+                              onTap: () => context.go('/observations'),
                             ),
                             const SizedBox(height: 8),
                             _QuickActionButton(

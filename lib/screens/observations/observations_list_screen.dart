@@ -18,7 +18,10 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadObservations();
+    // Reporter le chargement après le frame pour éviter setState() pendant le build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadObservations();
+    });
   }
 
   Future<void> _loadObservations() async {

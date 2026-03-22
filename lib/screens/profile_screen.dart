@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:p17/providers/auth_provider.dart';
 import 'package:p17/providers/observation_provider.dart';
@@ -14,7 +15,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    // Reporter le chargement après le frame pour éviter setState() pendant le build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
@@ -203,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           content: const Text('Êtes-vous sûr de vouloir vous déconnecter?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               child: const Text('Annuler'),
             ),
             TextButton(
@@ -211,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 final authProvider = context.read<AuthProvider>();
                 await authProvider.logout();
                 if (context.mounted) {
-                  Navigator.of(context).pop();
+                  context.pop();
                 }
               },
               child: const Text(

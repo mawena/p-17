@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:p17/models/observation.dart';
 import 'package:p17/providers/observation_provider.dart';
@@ -139,7 +140,7 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               child: const Text('Annuler'),
             ),
             TextButton(

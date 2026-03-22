@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:p17/providers/auth_provider.dart';
 import 'package:p17/providers/observation_provider.dart';
@@ -120,16 +121,27 @@ class _NewObservationScreenState extends State<NewObservationScreen> {
       String? photoUrl;
       String photoStoragePath = '';
 
+      // Upload photo si elle existe
       if (_selectedPhoto != null) {
-        photoUrl = await _storageService.uploadObservationPhoto(
-          photoFile: _selectedPhoto!,
-          userId: authProvider.currentUser!.uid,
-          observationId: observationId,
-        );
-        photoStoragePath = _storageService.getObservationPhotoPath(
-          userId: authProvider.currentUser!.uid,
-          observationId: observationId,
-        );
+        try {
+          photoUrl = await _storageService.uploadObservationPhoto(
+            photoFile: _selectedPhoto!,
+            userId: authProvider.currentUser!.uid,
+            observationId: observationId,
+          );
+          photoStoragePath = await _storageService.getObservationPhotoPath(
+            userId: authProvider.currentUser!.uid,
+            observationId: observationId,
+          );
+        } catch (e) {
+          if (!mounted) return;
+          SnackBarHelper.showSnackBar(
+            context,
+            message: 'Erreur upload photo: $e',
+            type: SnackBarType.error,
+          );
+          return;
+        }
       }
 
       final observation = Observation(
@@ -159,7 +171,11 @@ class _NewObservationScreenState extends State<NewObservationScreen> {
           message: 'Observation enregistrée',
           type: SnackBarType.success,
         );
-        Navigator.of(context).pop();
+        // Naviguer vers la page des observations avec go_router
+        // au lieu de pop() pour éviter les problèmes de synchronisation
+        if (mounted) {
+          context.go('/observations');
+        }
       } else {
         SnackBarHelper.showSnackBar(
           context,
@@ -375,7 +391,7 @@ class _NewObservationScreenState extends State<NewObservationScreen> {
               ),
               const SizedBox(height: 8),
               OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: const Text('Annuler'),
               ),
             ],

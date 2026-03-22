@@ -14,7 +14,10 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _loadObservations();
+    // Reporter le chargement après le frame pour éviter setState() pendant le build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadObservations();
+    });
   }
 
   Future<void> _loadObservations() async {
@@ -28,9 +31,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Carte des observations'),
-      ),
+      appBar: AppBar(title: const Text('Carte des observations')),
       body: Center(
         child: Consumer<ObservationProvider>(
           builder: (context, obsProvider, _) {
@@ -73,7 +74,8 @@ class _MapScreenState extends State<MapScreen> {
                         ListTile(
                           title: Text(obs.speciesName),
                           subtitle: Text(
-                              '${obs.latitude.toStringAsFixed(3)}, ${obs.longitude.toStringAsFixed(3)}'),
+                            '${obs.latitude.toStringAsFixed(3)}, ${obs.longitude.toStringAsFixed(3)}',
+                          ),
                           trailing: const Icon(Icons.location_on),
                         ),
                     ],
