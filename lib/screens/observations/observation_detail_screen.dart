@@ -31,7 +31,7 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              // Implémenter l'édition
+              context.go('/observations/${widget.observationId}/edit');
             },
             icon: const Icon(Icons.edit),
           ),

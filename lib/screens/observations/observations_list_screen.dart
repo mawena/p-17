@@ -15,6 +15,7 @@ class ObservationsListScreen extends StatefulWidget {
 class _ObservationsListScreenState extends State<ObservationsListScreen> {
   final _searchController = TextEditingController();
   String? _lastUserId;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -68,7 +69,9 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
                 ),
               ),
               onChanged: (query) {
-                // Implémenter la recherche
+                setState(() {
+                  _searchQuery = query.toLowerCase();
+                });
               },
             ),
           ),
@@ -99,11 +102,54 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
                   );
                 }
 
+                // Filtrer les observations selon la recherche
+                final filteredObservations = _searchQuery.isEmpty
+                    ? obsProvider.observations
+                    : obsProvider.observations
+                          .where(
+                            (obs) =>
+                                obs.speciesName.toLowerCase().contains(
+                                  _searchQuery,
+                                ) ||
+                                obs.description.toLowerCase().contains(
+                                  _searchQuery,
+                                ) ||
+                                obs.notes.toLowerCase().contains(_searchQuery),
+                          )
+                          .toList();
+
+                if (filteredObservations.isEmpty && _searchQuery.isNotEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Aucune observation trouvée',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'pour "$_searchQuery"',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 return ListView.builder(
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: obsProvider.observations.length,
+                  itemCount: filteredObservations.length,
                   itemBuilder: (context, index) {
-                    final observation = obsProvider.observations[index];
+                    final observation = filteredObservations[index];
                     return ObservationCard(
                       id: observation.id,
                       speciesName: observation.speciesName,
