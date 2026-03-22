@@ -1,0 +1,55 @@
+// Firebase Firestore Security Rules
+// À configurer dans Firebase Console > Firestore > Rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== Users ====================
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if request.auth.uid == userId;
+      allow create: if request.auth.uid == request.resource.data.uid;
+    }
+    
+    // ==================== Observations ====================
+    match /observations/{observationId} {
+      // Lire si public OU propriétaire
+      allow read: if resource.data.isPublic == true || 
+                     request.auth.uid == resource.data.userId;
+      
+      // Créer si authentifié
+      allow create: if request.auth.uid == request.resource.data.userId;
+      
+      // Updater si propriétaire
+      allow update: if request.auth.uid == resource.data.userId;
+      
+      // Supprimer si propriétaire
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+    
+    // ==================== Species ====================
+    match /species/{speciesId} {
+      // Lire pour tous (lecture publique)
+      allow read: if true;
+      
+      // Créer si admin (à implémenter avec custom claims)
+      allow create: if false;
+      
+      // Updater si admin
+      allow update: if false;
+      
+      // Supprimer si admin
+      allow delete: if false;
+    }
+    
+    // ==================== Public Feed ====================
+    match /public_feed/{postId} {
+      allow read: if true;
+      allow create: if request.auth.uid != null;
+      allow update: if request.auth.uid == resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+  }
+}

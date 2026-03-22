@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "13929643292",
+    "project_id": "jeff-q17",
+    "storage_bucket": "jeff-q17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13929643292:android:7afd7b6e6a44ec64a4ced9",
+        "android_client_info": {
+          "package_name": "com.example.p17"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "13929643292-i9ce6msu9sdru8bmgh5e46svaf3nihhp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuDFWIQsqB2rLymsclzvyynpCe-FgpiyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "13929643292-i9ce6msu9sdru8bmgh5e46svaf3nihhp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
