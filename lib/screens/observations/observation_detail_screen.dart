@@ -137,39 +137,37 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
   }
 
   Widget _buildImage(String photoPath) {
-    return FutureBuilder<bool>(
-      future: File(photoPath).exists(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            height: 300,
-            color: Colors.grey[300],
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (!snapshot.hasData || !snapshot.data!) {
+    // Vérifier si c'est une URL réseau (commence par http:// ou https://)
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return Image.network(
+        photoPath,
+        height: 300,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
           return Container(
             height: 300,
             color: Colors.grey[300],
             child: const Icon(Icons.image_not_supported),
           );
-        }
-
-        return Image.file(
-          File(photoPath),
-          height: 300,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              height: 300,
-              color: Colors.grey[300],
-              child: const Icon(Icons.image_not_supported),
-            );
-          },
-        );
-      },
-    );
+        },
+      );
+    } else {
+      // C'est un chemin local
+      return Image.file(
+        File(photoPath),
+        height: 300,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 300,
+            color: Colors.grey[300],
+            child: const Icon(Icons.image_not_supported),
+          );
+        },
+      );
+    }
   }
 
   void _showDeleteDialog() {
