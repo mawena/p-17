@@ -41,7 +41,13 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Observations')),
+      appBar: AppBar(
+        title: const Text('Observations'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/home'),
+        ),
+      ),
       body: Column(
         children: [
           Padding(
@@ -116,6 +122,11 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.go('/observations/new'),
+        tooltip: 'Nouvelle observation',
+        child: const Icon(Icons.add),
       ),
     );
   }

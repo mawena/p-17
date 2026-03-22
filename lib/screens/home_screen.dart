@@ -56,11 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/observations/new'),
-        tooltip: 'Nouvelle observation',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }

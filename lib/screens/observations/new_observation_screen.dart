@@ -202,7 +202,13 @@ class _NewObservationScreenState extends State<NewObservationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nouvelle observation')),
+      appBar: AppBar(
+        title: const Text('Nouvelle observation'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/observations'),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
