@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:p17/config/router.dart';
 import 'package:p17/config/theme.dart';
 import 'package:p17/providers/auth_provider.dart';
@@ -62,12 +63,14 @@ class _MyAppContentState extends State<MyAppContent> {
 
   @override
   Widget build(BuildContext context) {
+    final router = AppRouter.getRouter(context);
+
     return MaterialApp.router(
       title: 'Wildlife Census',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
-      routerConfig: AppRouter.router,
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
     );
   }

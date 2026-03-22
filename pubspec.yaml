@@ -40,6 +40,7 @@ dependencies:
   firebase_auth: ^4.19.2
   cloud_firestore: ^4.15.2
   firebase_storage: ^11.6.2
+  google_sign_in: ^6.2.1
   
   # Camera & Image
   camera: ^0.10.5+5

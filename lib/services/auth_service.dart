@@ -1,9 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:p17/models/user.dart';
 import 'package:p17/services/local_user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId:
+        '13929643292-i9ce6msu9sdru8bmgh5e46svaf3nihhp.apps.googleusercontent.com',
+  );
   final LocalUserService _userService = LocalUserService();
 
   // Stream de l'utilisateur authentifié
@@ -87,6 +92,58 @@ class AuthService {
   // Déconnexion
   Future<void> logout() async {
     await _auth.signOut();
+    await _googleSignIn.signOut();
+  }
+
+  // Connexion avec Google
+  Future<AppUser> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw Exception('Connexion annulée par l\'utilisateur');
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user == null) throw Exception('Erreur lors de la connexion Google');
+
+      // Vérifier si l'utilisateur existe localement
+      var appUser = await _userService.getUser(user.uid);
+
+      if (appUser == null) {
+        // Créer le profil utilisateur localement
+        appUser = AppUser(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName ?? 'Utilisateur',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          observationCount: 0,
+          favoriteSpecies: [],
+        );
+        await _userService.createUser(appUser);
+      }
+
+      return appUser;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getErrorMessage(e.code));
+    } catch (e) {
+      throw Exception('Erreur lors de la connexion Google: $e');
+    }
+  }
+
+  // Inscription/Connexion avec Google
+  Future<AppUser> signUpWithGoogle() async {
+    // La logique est la même que signInWithGoogle
+    return signInWithGoogle();
   }
 
   // Réinitialiser le mot de passe

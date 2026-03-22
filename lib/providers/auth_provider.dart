@@ -130,6 +130,35 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> loginWithGoogle() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      _currentUser = await _authService.signInWithGoogle();
+
+      // Charger les observations après la connexion Google
+      if (_currentUser != null) {
+        _onUserSignedIn?.call(_currentUser!.uid);
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> signupWithGoogle() async {
+    // La logique est la même que loginWithGoogle
+    return loginWithGoogle();
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();
