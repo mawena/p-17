@@ -14,6 +14,7 @@ class ObservationsListScreen extends StatefulWidget {
 
 class _ObservationsListScreenState extends State<ObservationsListScreen> {
   final _searchController = TextEditingController();
+  String? _lastUserId;
 
   @override
   void initState() {
@@ -27,9 +28,20 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
   Future<void> _loadObservations() async {
     final authProvider = context.read<AuthProvider>();
     if (authProvider.currentUser != null) {
-      final obsProvider = context.read<ObservationProvider>();
-      await obsProvider.loadUserObservations(authProvider.currentUser!.uid);
+      // Ne recharger que si l'utilisateur a changé
+      if (_lastUserId != authProvider.currentUser!.uid) {
+        _lastUserId = authProvider.currentUser!.uid;
+        final obsProvider = context.read<ObservationProvider>();
+        await obsProvider.loadUserObservations(authProvider.currentUser!.uid);
+      }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger les observations quand les dépendances changent (changement d'onglet, etc.)
+    _loadObservations();
   }
 
   @override
@@ -41,13 +53,7 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Observations'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/home'),
-        ),
-      ),
+      appBar: AppBar(title: const Text('Observations')),
       body: Column(
         children: [
           Padding(

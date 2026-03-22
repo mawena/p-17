@@ -6,6 +6,9 @@ import 'package:p17/services/auth_service.dart';
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
+  // On utilise une fonction callback pour charger les observations
+  Function(String userId)? _onUserSignedIn;
+
   AppUser? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
@@ -17,6 +20,10 @@ class AuthProvider extends ChangeNotifier {
 
   Stream<User?> get authStateChanges => _authService.authStateChanges;
 
+  void setOnUserSignedIn(Function(String userId) callback) {
+    _onUserSignedIn = callback;
+  }
+
   AuthProvider() {
     _initializeUser();
   }
@@ -24,6 +31,10 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _initializeUser() async {
     final user = await _authService.getCurrentUser();
     _currentUser = user;
+    // Charger les observations si l'utilisateur est connecté
+    if (_currentUser != null) {
+      _onUserSignedIn?.call(_currentUser!.uid);
+    }
     notifyListeners();
   }
 
@@ -43,6 +54,11 @@ class AuthProvider extends ChangeNotifier {
         displayName: displayName,
       );
 
+      // Charger les observations après l'inscription
+      if (_currentUser != null) {
+        _onUserSignedIn?.call(_currentUser!.uid);
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -61,6 +77,11 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       _currentUser = await _authService.login(email: email, password: password);
+
+      // Charger les observations après la connexion
+      if (_currentUser != null) {
+        _onUserSignedIn?.call(_currentUser!.uid);
+      }
 
       _isLoading = false;
       notifyListeners();

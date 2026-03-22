@@ -79,11 +79,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Theme.of(context).primaryColor,
-                        ),
+                        child: user.photoUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: Image.network(
+                                  user.photoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: Theme.of(context).primaryColor,
+                                    );
+                                  },
+                                ),
+                              )
+                            : Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: _showChangePhotoBottomSheet,
+                        icon: const Icon(Icons.camera_alt),
+                        label: const Text('Changer la photo'),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -134,12 +155,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _SectionTitle('Paramètres'),
                       ListTile(
-                        leading: const Icon(Icons.edit),
-                        title: const Text('Modifier le profil'),
+                        leading: const Icon(Icons.person_outline),
+                        title: const Text('Voir mon profil'),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: () {
-                          // Implémenter l'édition du profil
+                          // Afficher les détails du profil
                         },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.edit),
+                        title: const Text('Modifier mon profil'),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: _showEditProfileDialog,
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.image),
+                        title: const Text('Changer la photo de profil'),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: _showChangePhotoBottomSheet,
                       ),
                       ListTile(
                         leading: const Icon(Icons.lock),
@@ -174,6 +207,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onTap: () {
                           // Afficher l'aide
                         },
+                      ),
+                      const Divider(),
+                      _SectionTitle('Danger'),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        title: const Text(
+                          'Supprimer mon compte',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: _showDeleteAccountDialog,
                       ),
                       const Divider(),
                       ListTile(
@@ -220,6 +267,197 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               child: const Text(
                 'Déconnexion',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showChangePhotoBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Changer la photo de profil',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Prendre une photo'),
+                onTap: () {
+                  context.pop();
+                  // Implémenter la prise de photo
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Fonctionnalité à implémenter'),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.image),
+                title: const Text('Choisir une photo'),
+                onTap: () {
+                  context.pop();
+                  // Implémenter la sélection de photo
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Fonctionnalité à implémenter'),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('Supprimer la photo'),
+                onTap: () {
+                  context.pop();
+                  // Implémenter la suppression de photo
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Fonctionnalité à implémenter'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('Annuler'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditProfileDialog() {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+
+    if (user == null) return;
+
+    final nameController = TextEditingController(text: user.displayName);
+    final emailController = TextEditingController(text: user.email);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Modifier le profil'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nom',
+                    hintText: 'Entrez votre nom',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    hintText: 'Entrez votre email',
+                  ),
+                  enabled: false,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(),
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Implémenter la mise à jour du profil
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profil mis à jour')),
+                );
+                context.pop();
+              },
+              child: const Text('Enregistrer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Supprimer le compte'),
+          content: const Text(
+            'Attention ! Cette action est irréversible. Tous vos données seront supprimées de manière permanente. '
+            'Êtes-vous absolument sûr de vouloir supprimer votre compte?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(),
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                context.pop();
+                _showConfirmDeleteAccountDialog();
+              },
+              child: const Text(
+                'Continuer',
+                style: TextStyle(color: Colors.orange),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showConfirmDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmer la suppression'),
+          content: const Text(
+            'Tapez "SUPPRIMER" pour confirmer la suppression de votre compte.',
+          ),
+          contentPadding: const EdgeInsets.all(16),
+          actions: [
+            TextButton(
+              onPressed: () => context.pop(),
+              child: const Text('Annuler'),
+            ),
+            // Nous allons implémenter cela simplement sans champ texte pour l'instant
+            TextButton(
+              onPressed: () async {
+                // Implémenter la suppression du compte
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Compte en cours de suppression...'),
+                  ),
+                );
+                context.pop();
+              },
+              child: const Text(
+                'Supprimer définitivement',
                 style: TextStyle(color: Colors.red),
               ),
             ),

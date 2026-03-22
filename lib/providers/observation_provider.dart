@@ -19,7 +19,6 @@ class ObservationProvider extends ChangeNotifier {
   // Charger les observations de l'utilisateur
   Future<void> loadUserObservations(String userId) async {
     try {
-      // Ne pas appeler notifyListeners ici pour éviter setState() pendant le build
       _errorMessage = null;
       _currentUserId = userId;
 
@@ -28,22 +27,24 @@ class ObservationProvider extends ChangeNotifier {
       _observationSubscription = null;
 
       _isLoading = true;
-      // Notifier après la cancellation du stream précédent
       notifyListeners();
 
-      // S'abonner au stream pour les mises à jour en temps réel
+      // Première requête : charger les données avec await
+      _observations = await _firestoreService.getUserObservationsOnce(userId);
+      _isLoading = false;
+      notifyListeners();
+
+      // Puis s'abonner au stream pour les mises à jour en temps réel
       _observationSubscription = _firestoreService
           .getUserObservations(userId)
           .listen(
             (observations) {
               _observations = observations;
-              _isLoading = false;
               _errorMessage = null;
               notifyListeners();
             },
             onError: (error) {
               _errorMessage = error.toString();
-              _isLoading = false;
               notifyListeners();
             },
           );

@@ -206,7 +206,7 @@ class _NewObservationScreenState extends State<NewObservationScreen> {
         title: const Text('Nouvelle observation'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/observations'),
+          onPressed: () => context.go('/home'),
         ),
       ),
       body: SingleChildScrollView(

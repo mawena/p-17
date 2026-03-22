@@ -50,6 +50,15 @@ class FirestoreService {
     }
   }
 
+  // Obtenir les observations de l'utilisateur une seule fois avec await
+  Future<List<Observation>> getUserObservationsOnce(String userId) async {
+    try {
+      return await _observationsService.getUserObservations(userId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // Obtenir les observations de l'utilisateur (Stream)
   Stream<List<Observation>> getUserObservations(String userId) {
     // Créer un StreamController pour simuler les updates en temps réel

@@ -26,7 +26,7 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
         title: const Text('Détails de l\'observation'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/observations'),
+          onPressed: () => context.go('/home'),
         ),
         actions: [
           IconButton(

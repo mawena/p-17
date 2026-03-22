@@ -29,14 +29,46 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ObservationProvider()),
         ChangeNotifierProvider(create: (_) => SpeciesProvider()),
       ],
-      child: MaterialApp.router(
-        title: 'Wildlife Census',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
-        routerConfig: AppRouter.router,
-        debugShowCheckedModeBanner: false,
-      ),
+      child: const MyAppContent(),
+    );
+  }
+}
+
+class MyAppContent extends StatefulWidget {
+  const MyAppContent({super.key});
+
+  @override
+  State<MyAppContent> createState() => _MyAppContentState();
+}
+
+class _MyAppContentState extends State<MyAppContent> {
+  late final AuthProvider _authProvider;
+  late final ObservationProvider _obsProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    // Accéder aux providers après le premier build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _authProvider = context.read<AuthProvider>();
+      _obsProvider = context.read<ObservationProvider>();
+
+      // Configurer le callback pour charger les observations quand l'utilisateur se connecte
+      _authProvider.setOnUserSignedIn((userId) {
+        _obsProvider.loadUserObservations(userId);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: 'Wildlife Census',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light,
+      routerConfig: AppRouter.router,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
