@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import 'package:p17/config/router.dart';
 import 'package:p17/config/theme.dart';
 import 'package:p17/providers/auth_provider.dart';
@@ -11,8 +12,12 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialiser Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialiser Firebase seulement sur les plateformes supportées
+  if (!Platform.isLinux) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 
   runApp(const MyApp());
 }

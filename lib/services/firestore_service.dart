@@ -1,13 +1,42 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 import 'package:p17/models/observation.dart';
 import 'package:p17/models/species.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Mock data for Linux
+  static final List<Species> _mockSpecies = [
+    Species(
+      id: '1',
+      commonName: 'Pigeon biset',
+      scientificName: 'Columba livia',
+      type: 'bird',
+      description: 'Common pigeon found in urban areas',
+      imageUrl: '',
+      tags: ['bird', 'urban'],
+      createdAt: DateTime.now(),
+    ),
+    Species(
+      id: '2',
+      commonName: 'Moineau domestique',
+      scientificName: 'Passer domesticus',
+      type: 'bird',
+      description: 'Common sparrow',
+      imageUrl: '',
+      tags: ['bird', 'urban'],
+      createdAt: DateTime.now(),
+    ),
+  ];
+
   // ==================== Observations ====================
   // Créer une nouvelle observation
   Future<String> addObservation(Observation observation) async {
+    if (Platform.isLinux) {
+      return 'linux-obs-${DateTime.now().millisecondsSinceEpoch}';
+    }
+
     try {
       final docRef = await _firestore
           .collection('observations')
@@ -23,6 +52,10 @@ class FirestoreService {
     String observationId,
     Map<String, dynamic> updates,
   ) async {
+    if (Platform.isLinux) {
+      return;
+    }
+
     try {
       await _firestore
           .collection('observations')
@@ -35,6 +68,10 @@ class FirestoreService {
 
   // Supprimer une observation
   Future<void> deleteObservation(String observationId) async {
+    if (Platform.isLinux) {
+      return;
+    }
+
     try {
       await _firestore.collection('observations').doc(observationId).delete();
     } catch (e) {
@@ -44,6 +81,10 @@ class FirestoreService {
 
   // Obtenir les observations de l'utilisateur
   Stream<List<Observation>> getUserObservations(String userId) {
+    if (Platform.isLinux) {
+      return Stream.value([]);
+    }
+
     return _firestore
         .collection('observations')
         .where('userId', isEqualTo: userId)
@@ -58,6 +99,10 @@ class FirestoreService {
 
   // Obtenir une observation spécifique
   Future<Observation?> getObservation(String observationId) async {
+    if (Platform.isLinux) {
+      return null;
+    }
+
     try {
       final doc = await _firestore
           .collection('observations')
@@ -76,6 +121,10 @@ class FirestoreService {
   Future<List<Observation>> searchObservationsBySpecies(
     String speciesName,
   ) async {
+    if (Platform.isLinux) {
+      return [];
+    }
+
     try {
       final snapshot = await _firestore
           .collection('observations')
@@ -91,6 +140,10 @@ class FirestoreService {
 
   // Obtenir les observations publiques
   Stream<List<Observation>> getPublicObservations() {
+    if (Platform.isLinux) {
+      return Stream.value([]);
+    }
+
     return _firestore
         .collection('observations')
         .where('isPublic', isEqualTo: true)
@@ -107,6 +160,10 @@ class FirestoreService {
   // ==================== Species ====================
   // Ajouter une espèce
   Future<String> addSpecies(Species species) async {
+    if (Platform.isLinux) {
+      return 'linux-species-${DateTime.now().millisecondsSinceEpoch}';
+    }
+
     try {
       final docRef = await _firestore
           .collection('species')
@@ -119,6 +176,10 @@ class FirestoreService {
 
   // Obtenir toutes les espèces
   Future<List<Species>> getAllSpecies() async {
+    if (Platform.isLinux) {
+      return _mockSpecies;
+    }
+
     try {
       final snapshot = await _firestore.collection('species').get();
       return snapshot.docs.map((doc) => Species.fromFirestore(doc)).toList();
@@ -129,6 +190,14 @@ class FirestoreService {
 
   // Rechercher une espèce
   Future<List<Species>> searchSpecies(String query) async {
+    if (Platform.isLinux) {
+      return _mockSpecies
+          .where(
+            (s) => s.commonName.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
+    }
+
     try {
       final snapshot = await _firestore
           .collection('species')
@@ -143,6 +212,10 @@ class FirestoreService {
 
   // Obtenir les espèces par type
   Future<List<Species>> getSpeciesByType(String type) async {
+    if (Platform.isLinux) {
+      return _mockSpecies.where((s) => s.type == type).toList();
+    }
+
     try {
       final snapshot = await _firestore
           .collection('species')
@@ -157,6 +230,10 @@ class FirestoreService {
   // ==================== User Stats ====================
   // Mettre à jour les stats de l'utilisateur
   Future<void> updateUserStats(String userId, int observationCount) async {
+    if (Platform.isLinux) {
+      return;
+    }
+
     try {
       await _firestore.collection('users').doc(userId).update({
         'observationCount': observationCount,
@@ -169,6 +246,10 @@ class FirestoreService {
 
   // Ajouter une espèce aux favoris
   Future<void> addFavoriteSpecies(String userId, String speciesId) async {
+    if (Platform.isLinux) {
+      return;
+    }
+
     try {
       await _firestore.collection('users').doc(userId).update({
         'favoriteSpecies': FieldValue.arrayUnion([speciesId]),
@@ -180,6 +261,10 @@ class FirestoreService {
 
   // Supprimer une espèce des favoris
   Future<void> removeFavoriteSpecies(String userId, String speciesId) async {
+    if (Platform.isLinux) {
+      return;
+    }
+
     try {
       await _firestore.collection('users').doc(userId).update({
         'favoriteSpecies': FieldValue.arrayRemove([speciesId]),

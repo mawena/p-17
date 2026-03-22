@@ -46,6 +46,11 @@ class StorageService {
     required String userId,
     required String observationId,
   }) async {
+    if (Platform.isLinux) {
+      // Return a local file path for Linux
+      return photoFile.path;
+    }
+
     try {
       final fileName =
           'observations/$userId/$observationId/${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -70,6 +75,18 @@ class StorageService {
 
   // Supprimer une photo
   Future<void> deletePhoto(String photoUrl) async {
+    if (Platform.isLinux) {
+      // On Linux, just try to delete the local file if it exists
+      try {
+        if (File(photoUrl).existsSync()) {
+          await File(photoUrl).delete();
+        }
+      } catch (e) {
+        // Silently fail
+      }
+      return;
+    }
+
     try {
       final ref = _storage.refFromURL(photoUrl);
       await ref.delete();
@@ -83,6 +100,11 @@ class StorageService {
     required File avatarFile,
     required String userId,
   }) async {
+    if (Platform.isLinux) {
+      // Return local file path for Linux
+      return avatarFile.path;
+    }
+
     try {
       final ref = _storage.ref().child('users/$userId/avatar.jpg');
       await ref.putFile(avatarFile);

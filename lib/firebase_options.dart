@@ -21,10 +21,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return linux;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -55,7 +52,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '13929643292',
     projectId: 'jeff-q17',
     storageBucket: 'jeff-q17.firebasestorage.app',
-    iosClientId: '13929643292-4fh3cqga3lsd9hqi1nvstm1rdggpdeu0.apps.googleusercontent.com',
+    iosClientId:
+        '13929643292-4fh3cqga3lsd9hqi1nvstm1rdggpdeu0.apps.googleusercontent.com',
     iosBundleId: 'com.example.p17',
   );
 
@@ -65,7 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '13929643292',
     projectId: 'jeff-q17',
     storageBucket: 'jeff-q17.firebasestorage.app',
-    iosClientId: '13929643292-4fh3cqga3lsd9hqi1nvstm1rdggpdeu0.apps.googleusercontent.com',
+    iosClientId:
+        '13929643292-4fh3cqga3lsd9hqi1nvstm1rdggpdeu0.apps.googleusercontent.com',
     iosBundleId: 'com.example.p17',
   );
 
@@ -78,4 +77,12 @@ class DefaultFirebaseOptions {
     storageBucket: 'jeff-q17.firebasestorage.app',
   );
 
+  static const FirebaseOptions linux = FirebaseOptions(
+    apiKey: 'AIzaSyDeUZszTjgAEjxtcRqjpClKxo-Ro7g_2Ls',
+    appId: '1:13929643292:web:8db42694005f085ba4ced9',
+    messagingSenderId: '13929643292',
+    projectId: 'jeff-q17',
+    authDomain: 'jeff-q17.firebaseapp.com',
+    storageBucket: 'jeff-q17.firebasestorage.app',
+  );
 }

@@ -1,15 +1,30 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 import 'package:p17/models/user.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Stream de l'utilisateur authentifié
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  // Mock user pour Linux
+  static const String _MOCK_UID = 'linux-test-user-123';
 
-  User? get currentUser => _auth.currentUser;
+  // Stream de l'utilisateur authentifié
+  Stream<User?> get authStateChanges {
+    if (Platform.isLinux) {
+      // Retourner un stream vide pour Linux
+      return Stream.empty();
+    }
+    return _auth.authStateChanges();
+  }
+
+  User? get currentUser {
+    if (Platform.isLinux) {
+      return null;
+    }
+    return _auth.currentUser;
+  }
 
   // Inscription
   Future<AppUser> signup({
@@ -17,6 +32,19 @@ class AuthService {
     required String password,
     required String displayName,
   }) async {
+    if (Platform.isLinux) {
+      // Retourner un utilisateur mock pour Linux
+      return AppUser(
+        uid: _MOCK_UID,
+        email: email,
+        displayName: displayName,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        observationCount: 0,
+        favoriteSpecies: [],
+      );
+    }
+
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -56,6 +84,19 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    if (Platform.isLinux) {
+      // Connexion mock pour Linux
+      return AppUser(
+        uid: _MOCK_UID,
+        email: email,
+        displayName: 'Test User',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        observationCount: 0,
+        favoriteSpecies: [],
+      );
+    }
+
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -75,11 +116,18 @@ class AuthService {
 
   // Déconnexion
   Future<void> logout() async {
+    if (Platform.isLinux) {
+      return;
+    }
     await _auth.signOut();
   }
 
   // Réinitialiser le mot de passe
   Future<void> resetPassword(String email) async {
+    if (Platform.isLinux) {
+      return;
+    }
+
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
@@ -89,6 +137,10 @@ class AuthService {
 
   // Obtenir l'utilisateur courant
   Future<AppUser?> getCurrentUser() async {
+    if (Platform.isLinux) {
+      return null;
+    }
+
     final user = _auth.currentUser;
     if (user == null) return null;
 
