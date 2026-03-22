@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,10 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détails de l\'observation'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/observations'),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -60,7 +65,9 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (observation.photoUrl != null)
+                if (observation.photoStoragePath.isNotEmpty)
+                  _buildImage(observation.photoStoragePath)
+                else if (observation.photoUrl != null)
                   Image.network(
                     observation.photoUrl!,
                     height: 300,
@@ -129,6 +136,42 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
     );
   }
 
+  Widget _buildImage(String photoPath) {
+    return FutureBuilder<bool>(
+      future: File(photoPath).exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            height: 300,
+            color: Colors.grey[300],
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (!snapshot.hasData || !snapshot.data!) {
+          return Container(
+            height: 300,
+            color: Colors.grey[300],
+            child: const Icon(Icons.image_not_supported),
+          );
+        }
+
+        return Image.file(
+          File(photoPath),
+          height: 300,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              height: 300,
+              color: Colors.grey[300],
+              child: const Icon(Icons.image_not_supported),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showDeleteDialog() {
     showDialog(
       context: context,
@@ -148,8 +191,8 @@ class _ObservationDetailScreenState extends State<ObservationDetailScreen> {
                 final obsProvider = context.read<ObservationProvider>();
                 await obsProvider.deleteObservation(widget.observationId);
                 if (context.mounted) {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  context.pop();
+                  context.go('/observations');
                   SnackBarHelper.showSnackBar(
                     context,
                     message: 'Observation supprimée',

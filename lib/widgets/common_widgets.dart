@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 class LoadingWidget extends StatelessWidget {
   final String? message;
@@ -238,19 +239,7 @@ class _ObservationCardState extends State<ObservationCard>
                     topLeft: Radius.circular(12),
                     topRight: Radius.circular(12),
                   ),
-                  child: Image.network(
-                    widget.photoUrl,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image_not_supported),
-                      );
-                    },
-                  ),
+                  child: _buildImage(widget.photoUrl),
                 ),
               Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -288,5 +277,40 @@ class _ObservationCardState extends State<ObservationCard>
         ),
       ),
     );
+  }
+
+  // Afficher l'image appropriée selon si c'est un chemin local ou une URL
+  Widget _buildImage(String photoPath) {
+    // Vérifier si c'est une URL réseau (commence par http:// ou https://)
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return Image.network(
+        photoPath,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 200,
+            color: Colors.grey[300],
+            child: const Icon(Icons.image_not_supported),
+          );
+        },
+      );
+    } else {
+      // C'est un chemin local
+      return Image.file(
+        File(photoPath),
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 200,
+            color: Colors.grey[300],
+            child: const Icon(Icons.image_not_supported),
+          );
+        },
+      );
+    }
   }
 }

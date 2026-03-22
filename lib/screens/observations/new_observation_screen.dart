@@ -124,15 +124,13 @@ class _NewObservationScreenState extends State<NewObservationScreen> {
       // Upload photo si elle existe
       if (_selectedPhoto != null) {
         try {
-          photoUrl = await _storageService.uploadObservationPhoto(
+          final filePath = await _storageService.uploadObservationPhoto(
             photoFile: _selectedPhoto!,
             userId: authProvider.currentUser!.uid,
             observationId: observationId,
           );
-          photoStoragePath = await _storageService.getObservationPhotoPath(
-            userId: authProvider.currentUser!.uid,
-            observationId: observationId,
-          );
+          photoUrl = filePath;
+          photoStoragePath = filePath;
         } catch (e) {
           if (!mounted) return;
           SnackBarHelper.showSnackBar(
